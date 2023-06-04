@@ -51,6 +51,13 @@ public class LED_Controller : MonoBehaviour
         sc.SendSerialMessage(message);
 
     }
+
+    /// <summary>
+    /// Stops the current running operation and set the led to 0 on all channels
+    /// </summary>
+    public void Terminate(){
+        sc.SendSerialMessage("*");
+    }
 }
 
 struct RGBW{
