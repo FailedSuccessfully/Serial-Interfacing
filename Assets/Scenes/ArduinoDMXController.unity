@@ -418,7 +418,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 2304537123834468660}
         m_TargetAssemblyTypeName: LED_Controller, Assembly-CSharp
-        m_MethodName: SetToGreen
+        m_MethodName: Terminate
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -1687,10 +1687,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   portName: COM4
-  baudRate: 115200
+  baudRate: 9600
   messageListener: {fileID: 0}
   reconnectionDelay: 1000
-  maxUnreadMessages: 1
+  maxUnreadMessages: 1000
 --- !u!114 &2304537123834468660
 MonoBehaviour:
   m_ObjectHideFlags: 0
