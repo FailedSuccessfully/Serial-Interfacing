@@ -1,16 +1,30 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.IO;
 
 [RequireComponent(typeof(SerialController))]
 public class LED_Controller : MonoBehaviour
 {
+    [SerializeField] bool useConfigFile;
+    string cfg = Application.streamingAssetsPath + "/cfg.ini";
     SerialController sc;
     // Start is called before the first frame update
-    void Start()
+    void Awake()
     {
         sc = GetComponent<SerialController>();
 
+        if (useConfigFile && File.Exists(cfg)){
+            string text = File.ReadAllLines(cfg)[0];
+            Debug.Log(text);
+            if (text != ""){
+                sc.portName = text;
+                Debug.Log($"COM port set to {sc.portName}");
+            }
+        }
+        else if (useConfigFile){
+            Debug.LogWarning($"config file {cfg} not found");
+        }
     }
     
     /// <summary>
