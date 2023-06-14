@@ -6,12 +6,15 @@ using System.IO;
 [RequireComponent(typeof(SerialController))]
 public class LED_Controller : MonoBehaviour
 {
-    [SerializeField] bool useConfigFile;
+    [SerializeField] bool useConfigFile, shouldDelayTransmit;
+    [SerializeField] float delayTime;
     string cfg = Application.streamingAssetsPath + "/cfg.ini";
     SerialController sc;
+    Queue<string> messageQueue;
     // Start is called before the first frame update
     void Awake()
     {
+        messageQueue = new Queue<string>();
         sc = GetComponent<SerialController>();
 
         if (useConfigFile && File.Exists(cfg)){
@@ -26,6 +29,29 @@ public class LED_Controller : MonoBehaviour
             Debug.LogWarning($"config file {cfg} not found");
         }
     }
+
+    void Start()
+    {
+        StartCoroutine(DelayTransmit());
+    }
+
+    void Transmit(string message){
+        if (shouldDelayTransmit){
+            messageQueue.Enqueue(message);
+        } else {
+            sc.SendSerialMessage(message);
+        }
+    }
+
+    IEnumerator DelayTransmit(){
+        while (true){
+            if (messageQueue.Count > 0){
+                sc.SendSerialMessage(messageQueue.Dequeue());
+                yield return new WaitForSeconds(delayTime);
+            }
+            yield return new WaitForEndOfFrame();
+        }
+    }
     
     /// <summary>
     /// Scan will produce a top to bottom gradial change
@@ -36,10 +62,9 @@ public class LED_Controller : MonoBehaviour
     public void Scan(Color firstColor, Color secondColor, float time){
         RGBW startColor = RGBW.FromColor(firstColor);
         RGBW endColor = RGBW.FromColor(secondColor);
-        Debug.Log(startColor);
 
         string message = $"scan:{startColor}:{endColor}:{time}";
-        sc.SendSerialMessage(message);
+        Transmit(message);
     }
     /// <summary>
     /// Fade into and out of selected color
@@ -50,7 +75,7 @@ public class LED_Controller : MonoBehaviour
     /// <param name="restTime">Time in seconds between fading in and fading out</param>
     public void Fade(Color color, float fadeInTime, float fadeOutTime, float restTime){
         string message = $"fade:{RGBW.FromColor(color)}:{fadeInTime}:{fadeOutTime}:{restTime}";
-        sc.SendSerialMessage(message);
+        Transmit(message);
     }
     /// <summary>
     /// Flicker alternates between 2 colors for a duration, each color is segmented to its own pixels (for high density led fixtures)
@@ -62,7 +87,7 @@ public class LED_Controller : MonoBehaviour
     public void Flicker(Color color1, Color color2, float duration, float interval){
 
         string message = $"flic:{RGBW.FromColor(color1)}:{RGBW.FromColor(color2)}:{duration}:{interval}";
-        sc.SendSerialMessage(message);
+        Transmit(message);
 
     }
 
@@ -70,7 +95,7 @@ public class LED_Controller : MonoBehaviour
     /// Stops the current running operation and set the led to 0 on all channels
     /// </summary>
     public void Terminate(){
-        sc.SendSerialMessage("*");
+        Transmit("*");
     }
 }
 
