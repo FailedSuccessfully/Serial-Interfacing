@@ -18,10 +18,16 @@ public class SerialEventDispatcher : MonoBehaviour
         sc = GetComponent<SerialController>();
 
         if (File.Exists(cfg)){
-            string text = File.ReadAllLines(cfg)[0];
-            Debug.Log(text);
-            if (text != "")
-                sc.portName = text;
+            string[] data = File.ReadAllLines(cfg);
+            string port = data[0];
+            Debug.Log(port);
+            if (port != "")
+                sc.portName = port;
+            if (data.Length > 1 && int.TryParse(data[1], out int maxMsg)){
+                sc.maxUnreadMessages = maxMsg;
+            } else {
+                Debug.Log(data[1]);
+            }
         }
         else{
             Debug.LogWarning($"config file {cfg} not found");
@@ -29,24 +35,28 @@ public class SerialEventDispatcher : MonoBehaviour
 
     }
 
-    void Start(){
-    }
-
-    // Update is called once per frame
-    void Update()
+    // Invoked when a line of data is received from the serial device.
+    void OnMessageArrived(string msg)
     {
-        string s = sc.ReadSerialMessage();
-        if (s != null){
+        if (msg != null){
 
-            string[] split = s.Split(':');
+            string[] split = msg.Split(':');
 
             if (split.Length > 0){
-                if (int.TryParse(split[0], out int triggerIndex) && triggerIndex < eventDispatch.Length){ // try to get index from first part and check if it is withing range
+                if (int.TryParse(split[0], out int triggerIndex) && triggerIndex < eventDispatch.Length){ // try to get index from first part and check if it is within range
                     string message = split.Length > 1 ? split[1] : ""; // check if parameters exist to be sent
 
                     eventDispatch[triggerIndex].Invoke(message);
                 }
             }
         }
+    }
+    
+    // Invoked when a connect/disconnect event occurs. The parameter 'success'
+    // will be 'true' upon connection, and 'false' upon disconnection or
+    // failure to connect.
+    void OnConnectionEvent(bool success) {
+        string status = success ? "success" : "fail";
+        Debug.Log($"Connection {status}");
     }
 }

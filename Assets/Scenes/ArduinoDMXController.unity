@@ -1704,5 +1704,5 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   useConfigFile: 1
-  shouldDelayTransmit: 1
+  shouldDelayTransmit: 0
   delayTime: 1
